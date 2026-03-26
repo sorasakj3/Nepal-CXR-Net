@@ -212,7 +212,7 @@ sorasakjoshi2@gmail.com
 
 ## License
 
-Code in this repository is released under the MIT License. Model weights are available for academic research use only — contact before use. Training data is subject to the licenses of the respective source datasets (see [DATASETS.md](DATASETS.md)).
+Code in this repository is released under the MIT License. Model weights are available for academic research use only  contact before use. Training data is subject to the licenses of the respective source datasets (see [DATASETS.md](DATASETS.md)).
 
 ---
 
