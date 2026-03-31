@@ -20,6 +20,16 @@ Nepal-CXR-NET models both conditions simultaneously and is designed from the sta
 
 ---
 
+## Design Philosophy
+
+The system was designed around a single clinical principle: **miss nothing serious**. Every technical decision follows from this.
+
+Model selection and training optimization are based on recall (sensitivity), not accuracy. The malignancy class receives the highest focal loss weighting because the cost of missing cancer is asymmetric with the cost of flagging it — a false positive creates a referral; a false negative misses a cancer. Triage thresholds are configurable so individual clinical sites can dial sensitivity up or down based on local conditions: a teaching hospital in Kathmandu and a remote health post in Humla should not operate under the same sensitivity/specificity trade-off. The triage output is structured as Red / Amber / Green with probability breakdowns — not raw probabilities — to support clinical decision-making at the point of care rather than require numerical interpretation.
+
+The core design question was: can a single system hold both TB and malignancy at once, and can it distinguish between them reliably enough to change clinical routing?
+
+---
+
 ## What It Does
 
 The system runs a chest X-ray through four sequential stages:
@@ -37,7 +47,10 @@ Eight pathology classes, 640×640 input, trained on NIH ChestX-ray14 with pseudo
 Configurable thresholds map class probabilities to Red / Amber / Green risk levels with clinical routing recommendations.
 
 **Clinical Interface**
-React 18 + Vite 5 frontend. Upload a chest X-ray, receive a triage recommendation in under ten seconds, annotate the image directly, attach patient information, and export a formatted PDF clinical report.
+React 18 + Vite 5 frontend. Upload a chest X-ray (DICOM or PNG/JPEG), receive a triage recommendation in under ten seconds, annotate the image directly (circles, arrows, text labels), attach patient information (name, ID, age, gender, study date), and export the full result as a formatted PDF clinical report.
+
+**Safety Gate**
+The system includes a configurable Safety Gate: when TB probability is high, the malignancy score is softly suppressed to reduce noise from TB-related features resembling cancer. The gate is kept soft and configurable rather than hard-coded because in a high-TB-prevalence setting, an aggressive gate would suppress malignancy signals almost everywhere. The gate behavior and thresholds are considered the highest-priority safety concern in the current design and are documented explicitly rather than abstracted away.
 
 ---
 
@@ -84,6 +97,20 @@ React 18 + Vite 5 frontend. Upload a chest X-ray, receive a triage recommendatio
 | YOLO Detector | mAP@0.50 (nodule) | 0.096 | Pseudo-label training; not radiologist-annotated |
 | DLBS | Val L1 Loss | 0.0032 | Gaussian-blur pseudo-pairs, not real bone suppression ground truth |
 | End-to-end inference | Speed (MPS) | ~10s/image | Single image on Apple Silicon |
+
+---
+
+## Clinical Interpretation
+
+The four-class validation closes the most important open question in the system's development: does it genuinely distinguish TB from malignancy, or does it collapse one into the other?
+
+**TB detection is excellent.** Sensitivity of 91.8% with AUC 0.998 means the classifier reliably identifies TB cases. At a lower threshold (0.27), 98% TB recall is achievable with 96.3% precision — suitable for high-sensitivity screening where missing a TB case carries the highest public health cost.
+
+**Malignancy detection is validated but imperfect.** Sensitivity of 83.8% with AUC 0.888 confirms the system genuinely discriminates malignancy from other pathology. However, precision is low at 43.5%, meaning roughly one in two malignancy flags is a false positive. For a triage system whose purpose is to over-refer rather than under-refer, false positives represent appropriate caution, not failure. They do, however, create a real referral burden that needs to be quantified in a clinical context.
+
+**Zero malignancy-as-TB errors is the most clinically meaningful number.** Not one of 1,733 malignancy test cases was dismissed as TB. The failure mode the system was most specifically designed to avoid — cancer being routed to the TB bucket and missed — does not appear in the test data. The reverse error (3.5% of TB cases flagged as potential malignancy) would still trigger clinical follow-up, not dismissal.
+
+**Normal sensitivity is modest at 52%.** The classifier over-predicts malignancy for normal cases. In a triage context this means additional referrals for patients who do not have pathology. This is acceptable from a safety standpoint but creates clinical workflow cost that needs to be weighed against the referral capacity of the target setting.
 
 ---
 
