@@ -12,7 +12,7 @@ Full write-up: [Nepal-CXR-NET on Notion](https://www.notion.so/32e2aebf771881ad8
 
 ## The Problem
 
-In Nepal, there are roughly 0.7 radiologists per 100,000 people. At most district health posts, a single GP reads every chest X-ray with no specialist backup and no systematic referral protocol for uncertain findings. Nepal also carries one of the highest TB burdens globally — approximately 117 cases per 100,000 people per year.
+In Nepal, there are roughly 0.7 radiologists per 100,000 people. At most district health posts, a single GP reads every chest X-ray with no specialist backup and no systematic referral protocol for uncertain findings. Nepal also carries one of the highest TB burdens globally approximately 117 cases per 100,000 people per year.
 
 That epidemiological reality shapes clinical decision-making: when a chest X-ray shows a suspicious finding, TB is the rational default. The problem is that early lung malignancy and tuberculosis look nearly identical on a 2D radiograph. In a high-TB-prevalence setting, cancer can be systematically missed.
 
@@ -24,7 +24,7 @@ Nepal-CXR-NET models both conditions simultaneously and is designed from the sta
 
 The system was designed around a single clinical principle: **miss nothing serious**. Every technical decision follows from this.
 
-Model selection and training optimization are based on recall (sensitivity), not accuracy. The malignancy class receives the highest focal loss weighting because the cost of missing cancer is asymmetric with the cost of flagging it — a false positive creates a referral; a false negative misses a cancer. Triage thresholds are configurable so individual clinical sites can dial sensitivity up or down based on local conditions: a teaching hospital in Kathmandu and a remote health post in Humla should not operate under the same sensitivity/specificity trade-off. The triage output is structured as Red / Amber / Green with probability breakdowns — not raw probabilities — to support clinical decision-making at the point of care rather than require numerical interpretation.
+Model selection and training optimization are based on recall (sensitivity), not accuracy. The malignancy class receives the highest focal loss weighting because the cost of missing cancer is asymmetric with the cost of flagging it a false positive creates a referral; a false negative misses a cancer. Triage thresholds are configurable so individual clinical sites can dial sensitivity up or down based on local conditions: a teaching hospital in Kathmandu and a remote health post in Humla should not operate under the same sensitivity/specificity trade-off. The triage output is structured as Red / Amber / Green with probability breakdowns not raw probabilities to support clinical decision-making at the point of care rather than require numerical interpretation.
 
 The core design question was: can a single system hold both TB and malignancy at once, and can it distinguish between them reliably enough to change clinical routing?
 
